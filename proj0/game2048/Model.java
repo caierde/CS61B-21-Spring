@@ -106,6 +106,53 @@ public class Model extends Observable {
      *    value, then the leading two tiles in the direction of motion merge,
      *    and the trailing tile does not.
      * */
+
+    //return changed = true ? false;
+    private boolean helpTilt(){
+        boolean changed;
+        changed = false;
+
+        boolean[][] hasMerged = new boolean[this.board.size()][this.board.size()];
+        for(int c = 0; c < this.board.size(); c++){
+            for(int r = 0; r < this.board.size(); r++){
+                hasMerged[c][r] = false;
+            }
+        }
+        for(int c = 0; c < this.board.size(); c++){
+            for(int r = this.board.size() - 1; r >= 0; r--){
+                Tile t = this.board.tile(c, r);
+                if(t != null){
+                    int nowr = r, endr = nowr;
+                    // up is empty or equal to(and has not merged)
+                    while(nowr < this.board.size() - 1 && (this.board.tile(c, nowr + 1) == null || (t.value() == this.board.tile(c, nowr + 1).value() && hasMerged[c][nowr + 1] == false))){
+                        if(this.board.tile(c, nowr + 1) != null && (t.value() == this.board.tile(c, nowr + 1).value() && hasMerged[c][nowr + 1] == false)){
+                            score += 2 * this.board.tile(c, r).value();
+                            nowr++;
+                            endr = nowr;
+                            changed = true;
+                            break;
+                        }
+                        nowr++;
+                        endr = nowr;
+                        changed = true;
+                    }
+                    if(this.board.move(c, endr, t)) hasMerged[c][endr] = true;
+                }
+            }
+        }
+        return changed;
+        // test code
+//        for(int c = 0; c < this.board.size(); c++) {
+//            for (int r = 0; r < this.board.size(); r++) {
+//                Tile t = board.tile(c, r);
+//                if (board.tile(c, r) != null) {
+//                    board.move(c, 3, t);
+//                    changed = true;
+//                    score += 7;
+//                }
+//            }
+//        }
+    }
     public boolean tilt(Side side) {
         boolean changed;
         changed = false;
@@ -113,6 +160,26 @@ public class Model extends Observable {
         // TODO: Modify this.board (and perhaps this.score) to account
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
+
+        // record if have merged because never merged twice
+
+        switch (side) {
+            case NORTH:
+                break;
+            case SOUTH:
+                this.board.setViewingPerspective(Side.SOUTH);
+                break;
+            case EAST:
+                this.board.setViewingPerspective(Side.EAST);
+                break;
+            case WEST:
+                this.board.setViewingPerspective(Side.WEST);
+                break;
+        }
+
+        changed = helpTilt();
+        this.board.setViewingPerspective(Side.NORTH);
+
 
         checkGameOver();
         if (changed) {
@@ -138,6 +205,11 @@ public class Model extends Observable {
      * */
     public static boolean emptySpaceExists(Board b) {
         // TODO: Fill in this function.
+        for(int i = 0; i < b.size(); i++) {
+            for (int j = 0; j < b.size(); j++) {
+                if (b.tile(i, j) == null) return true;
+            }
+        }
         return false;
     }
 
@@ -148,6 +220,11 @@ public class Model extends Observable {
      */
     public static boolean maxTileExists(Board b) {
         // TODO: Fill in this function.
+        for(int i = 0; i < b.size(); i++) {
+            for (int j = 0; j < b.size(); j++) {
+                if (b.tile(i, j) != null && b.tile(i, j).value() == MAX_PIECE) return true;
+            }
+        }
         return false;
     }
 
@@ -159,6 +236,14 @@ public class Model extends Observable {
      */
     public static boolean atLeastOneMoveExists(Board b) {
         // TODO: Fill in this function.
+//        if(maxTileExists(b)) return false;
+        if(emptySpaceExists(b)) return true;
+        for(int i = 0; i < b.size(); i++){
+            for(int j = 1; j < b.size(); j++){
+                if(b.tile(i, j - 1).value() == b.tile(i, j).value()) return true;
+                if(b.tile(j - 1, i).value() == b.tile(j, i).value()) return true;
+            }
+        }
         return false;
     }
 
