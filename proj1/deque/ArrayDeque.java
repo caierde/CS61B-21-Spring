@@ -17,26 +17,25 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
 
     private void resize(int newSize) {
         T[] newArray = (T[]) new Object[newSize];
+        if (size == 0) {
+            items = newArray;
+            return;
+        }
         int startIndex = (front + 1) % items.length;
         int endIndex = (rear - 1 + items.length) % items.length;
         if (endIndex >= startIndex) {
             // this case is elements in a contiguous block
             System.arraycopy(items, startIndex, newArray,
                     0, size);
+            front = newSize - 1;
+            rear = size;
         } else {
             // elements are wrapped around the end of the array
-            // copy the elements in a contiguous block start from 0
-            System.arraycopy(items, startIndex,
-                    newArray, 0, items.length - startIndex);
-            System.arraycopy(items, 0,
-                    newArray, items.length - startIndex, endIndex + 1);
-//            System.arraycopy(items, startIndex, newArray,
-//                    newSize - items.length + front + 1, items.length - front - 1);
-//            System.arraycopy(items, 0, newArray, 0, rear);
-//            front = newSize - items.length + front;
+            System.arraycopy(items, startIndex, newArray,
+                    newSize - items.length + startIndex, items.length - startIndex);
+            System.arraycopy(items, 0, newArray, 0, endIndex + 1);
+            front = newSize - items.length + startIndex -1;
         }
-        front = newSize - 1;
-        rear = size;
         items = newArray;
     }
 
@@ -66,7 +65,7 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
         if (size == 0) {
             return null;
         }
-        if (size > 16 && (size - 1) / items.length < 0.25) resize(items.length / 2);
+        if (size > 16 && (size - 1) * 1.0 / items.length < 0.25) resize(items.length / 2);
         front = (front + 1) % items.length;
         size--;
         return items[front];
@@ -76,7 +75,8 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
         if (size == 0) {
             return null;
         }
-        if (size > 16 && (size - 1) / items.length < 0.25) resize(items.length / 2);
+        // !!直接(size - 1) / items.length会丢弃小数
+        if (size > 16 && (size - 1) * 1.0 / items.length < 0.25) resize(items.length / 2);
         rear = (rear - 1 + items.length) % items.length;
         size--;
         return items[rear];
