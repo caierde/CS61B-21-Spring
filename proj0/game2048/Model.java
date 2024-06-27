@@ -112,6 +112,7 @@ public class Model extends Observable {
         boolean changed;
         changed = false;
 
+        // record if have merged because never merged twice
         boolean[][] hasMerged = new boolean[this.board.size()][this.board.size()];
         for(int c = 0; c < this.board.size(); c++){
             for(int r = 0; r < this.board.size(); r++){
@@ -161,7 +162,7 @@ public class Model extends Observable {
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
 
-        // record if have merged because never merged twice
+
 
         switch (side) {
             case NORTH:
