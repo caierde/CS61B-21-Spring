@@ -88,7 +88,7 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
         private int index;
         private Node curNode;
 
-        public LinkedListDequeIterator() {
+        LinkedListDequeIterator() {
             index = 0;
             curNode = sentinal.next;
         }
@@ -113,8 +113,12 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
         int curIndex = 0;
         // this syntax is novel to me, it is a new concept
         for (T i : this) {
-            if (curIndex == index) return i;
-            else curIndex++;
+            if (curIndex == index) {
+                return i;
+            }
+            else {
+                curIndex++;
+            }
         }
         return null;
     }

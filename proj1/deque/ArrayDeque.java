@@ -34,7 +34,7 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
             System.arraycopy(items, startIndex, newArray,
                     newSize - items.length + startIndex, items.length - startIndex);
             System.arraycopy(items, 0, newArray, 0, endIndex + 1);
-            front = newSize - items.length + startIndex -1;
+            front = newSize - items.length + startIndex - 1;
         }
         items = newArray;
     }
@@ -101,7 +101,7 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
     private class ArrayDequeIterator implements Iterator<T> {
         private int index;
 
-        public ArrayDequeIterator() {
+        ArrayDequeIterator() {
             index = 0;
         }
 
