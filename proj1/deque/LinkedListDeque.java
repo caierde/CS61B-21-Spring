@@ -58,7 +58,9 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
     }
 
     public T removeFirst() {
-        if (size == 0) return null;
+        if (size == 0) {
+            return null;
+        }
         Node removeNode = sentinal.next;
         removeNode.next.prev = sentinal;
         sentinal.next = removeNode.next;
@@ -67,7 +69,9 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
     }
 
     public T removeLast() {
-        if (size == 0) return null;
+        if (size == 0) {
+            return null;
+        }
         Node removeNode = sentinal.prev;
         removeNode.prev.next = sentinal;
         sentinal.prev = removeNode.prev;
@@ -103,7 +107,9 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
     }
 
     public T get(int index) {
-        if (index >= size || index < 0) return null;
+        if (index >= size || index < 0) {
+            return null;
+        }
         int curIndex = 0;
         // this syntax is novel to me, it is a new concept
         for (T i : this) {
@@ -114,25 +120,40 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
     }
 
     private T getRecursiveHelp(int index, Node curNode) {
-        if (index > 0) return getRecursiveHelp(index - 1, curNode.next);
+        if (index > 0) {
+            return getRecursiveHelp(index - 1, curNode.next);
+        }
         return curNode.item;
     }
 
     public T getRecursive(int index) {
-        if (index >= size || index < 0) return null;
+        if (index >= size || index < 0) {
+            return null;
+        }
         return getRecursiveHelp(index, sentinal.next);
     }
 
     @Override
     public boolean equals(Object o) {
         // l realize why chatgpt is avoidance, it is quite useful to who learn by themselves
-        if (o == this) return true;
-        if (!(o instanceof LinkedListDeque)) return false;
+        if (o == this) {
+            return true;
+        }
+        if (!(o instanceof LinkedListDeque)) {
+            return false;
+        }
         LinkedListDeque<T> other = (LinkedListDeque<T>) o;
-        if (other.size != size) return false;
-        int index = 0;
-        for (T item : this) {
-            if (!item.equals(other.get(index++))) return false;
+        if (other.size != size) {
+            return false;
+        }
+        Iterator<T> it1 = this.iterator();
+        Iterator<?> it2 = other.iterator();
+        while (it1.hasNext()) {
+            T item1 = it1.next();
+            Object item2 = it2.next();
+            if (!item1.equals(item2)) {
+                return false;
+            }
         }
         return true;
     }
