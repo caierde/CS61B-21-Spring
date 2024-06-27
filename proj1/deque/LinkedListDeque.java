@@ -3,7 +3,7 @@ package deque;
 import java.util.Iterator;
 
 // 循环双链表版本
-public class LinkedListDeque<T> implements Iterable<T>{
+public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
     // 哨兵节点
     private Node sentinal;
     private int size;
@@ -42,10 +42,6 @@ public class LinkedListDeque<T> implements Iterable<T>{
         sentinal.prev.next = newNode;
         sentinal.prev = newNode;
         size++;
-    }
-
-    public boolean isEmpty() {
-        return sentinal.next == sentinal;
     }
 
     public int size() {
