@@ -54,7 +54,9 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
     }
 
     public T removeFirst() {
-        if (size == 0) return null;
+        if (size == 0) {
+            return null;
+        }
         if (size > 16 && (size - 1) / items.length < 0.25) resize(items.length / 2);
         front = (front + 1) % items.length;
         size--;
@@ -62,7 +64,9 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
     }
 
     public T removeLast() {
-        if (size == 0) return null;
+        if (size == 0) {
+            return null;
+        }
         if (size > 16 && (size - 1) / items.length < 0.25) resize(items.length / 2);
         rear = (rear - 1 + items.length) % items.length;
         size--;
@@ -70,7 +74,9 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
     }
 
     public T get(int index) {
-        if (index >= size || index < 0) return null;
+        if (index >= size || index < 0) {
+            return null;
+        }
         return items[(front + 1 + index) % items.length];
     }
 
@@ -106,10 +112,16 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
 
     @Override
     public boolean equals(Object o) {
-        if (o == this) return true;
-        if (!(o instanceof ArrayDeque)) return false;
+        if (o == this) {
+            return true;
+        }
+        if (!(o instanceof ArrayDeque)) {
+            return false;
+        }
         ArrayDeque<T> other = (ArrayDeque<T>) o;
-        if (other.size != size) return false;
+        if (other.size != size) {
+            return false;
+        }
         int index = 0;
         for (T item : this) {
             if (item != other.get(index++)) return false;
