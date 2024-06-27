@@ -17,17 +17,26 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
 
     private void resize(int newSize) {
         T[] newArray = (T[]) new Object[newSize];
-        if (rear > front + 1) {
-            System.arraycopy(items, front + 1, newArray,
-                    newSize - rear + front + 2, rear - front - 2);
-            front = newSize - rear + front + 1;
-            rear = 0;
+        int startIndex = (front + 1) % items.length;
+        int endIndex = (rear - 1 + items.length) % items.length;
+        if (endIndex >= startIndex) {
+            // this case is elements in a contiguous block
+            System.arraycopy(items, startIndex, newArray,
+                    0, size);
         } else {
-            System.arraycopy(items, front + 1, newArray,
-                    newSize - items.length + front + 1, items.length - front - 1);
-            System.arraycopy(items, 0, newArray, 0, rear);
-            front = newSize - items.length + front;
+            // elements are wrapped around the end of the array
+            // copy the elements in a contiguous block start from 0
+            System.arraycopy(items, startIndex,
+                    newArray, 0, items.length - startIndex);
+            System.arraycopy(items, 0,
+                    newArray, items.length - startIndex, endIndex + 1);
+//            System.arraycopy(items, startIndex, newArray,
+//                    newSize - items.length + front + 1, items.length - front - 1);
+//            System.arraycopy(items, 0, newArray, 0, rear);
+//            front = newSize - items.length + front;
         }
+        front = newSize - 1;
+        rear = size;
         items = newArray;
     }
 
@@ -126,7 +135,7 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
         for (T item : this) {
             if (item != other.get(index++)) return false;
         }
-        return false;
+        return true;
     }
 
 }
