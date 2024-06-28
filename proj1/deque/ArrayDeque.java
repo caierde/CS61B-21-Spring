@@ -67,11 +67,12 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
         }
         front = (front + 1) % items.length;
         size--;
-        // !!直接(size - 1) / items.length会丢弃小数
+        T res = items[front];
+        // !!直接 size / items.length会丢弃小数
         if (size >= 16 && size * 1.0 / items.length < 0.25) {
             resize(items.length / 2);
         }
-        return items[front];
+        return res;
     }
 
     public T removeLast() {
@@ -80,10 +81,11 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
         }
         rear = (rear - 1 + items.length) % items.length;
         size--;
+        T res = items[rear];
         if (size >= 16 && size * 1.0 / items.length < 0.25) {
             resize(items.length / 2);
         }
-        return items[rear];
+        return res;
     }
 
     public T get(int index) {
