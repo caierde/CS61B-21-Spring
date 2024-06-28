@@ -11,7 +11,7 @@ public class TestArrayDequeEC {
         for (String messageItem : messageDeque) {
             message.append(messageItem).append("\n");
         }
-        return message.toString();
+        return message.toString().trim();
     }
 
     @Test
@@ -41,13 +41,13 @@ public class TestArrayDequeEC {
             } else if (operationNumber == 2) {
                 // removeFirst
                 if (deque1.size() > 0 && deque2.size() > 0) {
-                    messageDeque.addLast("removeFirst");
+                    messageDeque.addLast("removeFirst()");
                     assertEquals( buildMessage(messageDeque), deque1.removeFirst(), deque2.removeFirst());
                 }
             } else {
                 // removeLast
                 if (deque1.size() > 0 && deque2.size() > 0) {
-                    messageDeque.addLast("removeLast");
+                    messageDeque.addLast("removeLast()");
                     assertEquals( buildMessage(messageDeque), deque1.removeLast(), deque2.removeLast());
                 }
             }
