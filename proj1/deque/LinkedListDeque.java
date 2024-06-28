@@ -115,8 +115,7 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
         for (T i : this) {
             if (curIndex == index) {
                 return i;
-            }
-            else {
+            } else {
                 curIndex++;
             }
         }
@@ -143,7 +142,7 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
         if (o == this) {
             return true;
         }
-        if (!(o instanceof LinkedListDeque)) {
+        if (!(o instanceof Deque)) {
             return false;
         }
         LinkedListDeque<T> other = (LinkedListDeque<T>) o;

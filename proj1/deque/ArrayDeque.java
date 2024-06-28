@@ -65,11 +65,12 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
         if (size == 0) {
             return null;
         }
-        if (size > 16 && (size - 1) * 1.0 / items.length < 0.25) {
-            resize(items.length / 2);
-        }
         front = (front + 1) % items.length;
         size--;
+        // !!直接(size - 1) / items.length会丢弃小数
+        if (size >= 16 && size * 1.0 / items.length < 0.25) {
+            resize(items.length / 2);
+        }
         return items[front];
     }
 
@@ -77,12 +78,11 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
         if (size == 0) {
             return null;
         }
-        // !!直接(size - 1) / items.length会丢弃小数
-        if (size > 16 && (size - 1) * 1.0 / items.length < 0.25) {
-            resize(items.length / 2);
-        }
         rear = (rear - 1 + items.length) % items.length;
         size--;
+        if (size >= 16 && size * 1.0 / items.length < 0.25) {
+            resize(items.length / 2);
+        }
         return items[rear];
     }
 
@@ -128,7 +128,7 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
         if (o == this) {
             return true;
         }
-        if (!(o instanceof ArrayDeque)) {
+        if (!(o instanceof Deque)) {
             return false;
         }
         ArrayDeque<?> other = (ArrayDeque<?>) o;
