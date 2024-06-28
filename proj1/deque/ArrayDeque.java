@@ -69,6 +69,7 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
         size--;
         T res = items[front];
         // !!直接 size / items.length会丢弃小数
+        //l am very stupid write the if(size >= 16
         if (items.length >= 16 && size * 1.0 / items.length < 0.25) {
             resize(items.length / 2);
         }
@@ -133,18 +134,14 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
         if (!(o instanceof Deque)) {
             return false;
         }
-        ArrayDeque<?> other = (ArrayDeque<?>) o;
-        if (other.size != size) {
+        Deque<?> other = (Deque<?>) o;
+        if (other.size() != size) {
             return false;
         }
+        int index = 0;
         Iterator<T> it1 = this.iterator();
-        Iterator<?> it2 = other.iterator();
-        while (it1.hasNext()) {
-            T item1 = it1.next();
-            Object item2 = it2.next();
-            if (!item1.equals(item2)) {
-                return false;
-            }
+        for (T item : this) {
+            if (!item.equals(other.get(index++))) return false;
         }
         return true;
     }
