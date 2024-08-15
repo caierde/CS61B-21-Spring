@@ -264,17 +264,23 @@ public class Repository {
         Commit headCommit = getHeadCommit();
         TreeMap<String, String> headCommitBlobSHA1IdMap = headCommit.blobSHA1IdMap;
         /* each add need to compare addFile content to HeadCommitBlobSHA1IdMap content*/
-        String blobSHAName = Utils.sha1(addFileName, Utils.readContents(addFile));
-        /* if equal. then rm the addstage relevant blob*/
-        if (blobSHAName.equals(headCommitBlobSHA1IdMap.get(addFileName))) {
+        String blobSHAId = Utils.sha1(addFileName, Utils.readContents(addFile));
+        /* if equal the current branch commit blob. then rm the addstage relevant blob*/
+        if (blobSHAId.equals(headCommitBlobSHA1IdMap.get(addFileName))) {
             TreeMap<String, String> addStageBlodSHAMap = Utils.readObject(ADDSTAGE_FILE, TreeMap.class);
             if (addStageBlodSHAMap.containsKey(addFileName)) {
                 addStageBlodSHAMap.remove(addFileName);
             }
             return;
         }
+        /* if the file has been in remove stage, then we delete it in remove stage */
+        TreeMap<String, String> removeStageBlodSHAMap = Utils.readObject(REMOVESTAGE_FILE, TreeMap.class);
+        if (removeStageBlodSHAMap.containsKey(addFileName)) {
+            removeStageBlodSHAMap.remove(addFileName);
+            Utils.writeObject(REMOVESTAGE_FILE, removeStageBlodSHAMap);
+        }
         /* create relevant blob*/
-        File addBlobFile = Utils.join(BLOB_FOLDER, blobSHAName);
+        File addBlobFile = Utils.join(BLOB_FOLDER, blobSHAId);
         try {
             addBlobFile.createNewFile();
         } catch (IOException e) {
@@ -283,7 +289,7 @@ public class Repository {
         Utils.writeContents(addBlobFile, Utils.readContents(addFile));
         /* map the new blob in addstage*/
         TreeMap<String, String> addStageBlodSHAMap = Utils.readObject(ADDSTAGE_FILE, TreeMap.class);
-        addStageBlodSHAMap.put(addFileName, blobSHAName);
+        addStageBlodSHAMap.put(addFileName, blobSHAId);
         Utils.writeObject(ADDSTAGE_FILE, addStageBlodSHAMap);
     }
 
