@@ -220,6 +220,16 @@ class Utils {
         }
     }
 
+    /** Checks if a file with the specified filename exists in the directory DIR.
+     *  Returns true if the file exists, false otherwise. */
+    static boolean fileExistsInDirectory(File dir, String filename) {
+        if (dir != null && dir.isDirectory()) {
+            File file = new File(dir, filename);
+            return file.exists() && file.isFile();
+        }
+        return false;
+    }
+
 
 
     /* MESSAGES AND ERROR REPORTING */
