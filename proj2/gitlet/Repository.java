@@ -221,6 +221,7 @@ public class Repository {
             return;
         }
         /* create the skeleton of the .git directory*/
+        GITLET_DIR.mkdir();
         OBJECTS_FOLDER.mkdir();
         COMMIT_FOLDER.mkdir();
         BLOB_FOLDER.mkdir();
