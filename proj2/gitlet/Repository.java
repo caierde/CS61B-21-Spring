@@ -60,6 +60,14 @@ public class Repository {
     /* TODO: fill in the rest of this class. */
 
     /**
+     * all commands need to has been inited(except git init and git help)
+     * @return whether has inited
+     */
+    public static boolean ifHasInitialized() {
+        return GITLET_DIR.exists();
+    }
+
+    /**
      * helper method: get the head commit
      * @return HEAD commit
      */
@@ -207,7 +215,7 @@ public class Repository {
     /* init the .git*/
     public static void gitletInit() {
         /* if the directory has already had .git*/
-        if (!GITLET_DIR.mkdir()) {
+        if (ifHasInitialized()) {
             System.out.println("A Gitlet version-control" +
                     " system already exists in the current directory.");
             return;
@@ -255,6 +263,10 @@ public class Repository {
     }
 
     public static void gitletAdd(String addFileName) {
+        if (!ifHasInitialized()) {
+            System.out.println("Not in an initialized Gitlet directory.");
+            return;
+        }
         File addFile= Utils.join(CWD, addFileName);
         if (!addFile.exists()) {
             System.out.println("File does not exist.");
@@ -271,6 +283,7 @@ public class Repository {
             if (addStageBlodSHAMap.containsKey(addFileName)) {
                 addStageBlodSHAMap.remove(addFileName);
             }
+            Utils.writeObject(ADDSTAGE_FILE, addStageBlodSHAMap);
             return;
         }
         /* if the file has been in remove stage, then we delete it in remove stage */
@@ -294,6 +307,10 @@ public class Repository {
     }
 
     public static void gitletCommit(String message) {
+        if (!ifHasInitialized()) {
+            System.out.println("Not in an initialized Gitlet directory.");
+            return;
+        }
         if (message.equals("")) {
             System.out.println("Please enter a commit message.");
             return;
@@ -327,6 +344,10 @@ public class Repository {
     }
 
     public static void gitletRm(String rmFileName) {
+        if (!ifHasInitialized()) {
+            System.out.println("Not in an initialized Gitlet directory.");
+            return;
+        }
         /* judge this file if is staged or tracked by the head commit*/
         Commit headCommit = getHeadCommit();
         TreeMap<String, String> addStageBlodSHAMap = Utils.readObject(ADDSTAGE_FILE, TreeMap.class);
@@ -340,25 +361,23 @@ public class Repository {
             /* !!!need to update ADDSTAGE_FILE*/
             Utils.writeObject(ADDSTAGE_FILE, addStageBlodSHAMap);
         }
-        /* update the removestage*/
+        /* if is tracked in the current commit, update the removestage*/
         if (headCommit.blobSHA1IdMap.containsKey(rmFileName)) {
             TreeMap<String, String> removeStageBlodSHAMap = Utils.readObject(REMOVESTAGE_FILE, TreeMap.class);
-            if (headCommit.blobSHA1IdMap.containsKey(rmFileName)) {
-                removeStageBlodSHAMap.put(rmFileName, headCommit.blobSHA1IdMap.get(rmFileName));
-            } else {
-                removeStageBlodSHAMap.put(rmFileName, addStageBlodSHAMap.get(rmFileName));
-            }
+            removeStageBlodSHAMap.put(rmFileName, headCommit.blobSHA1IdMap.get(rmFileName));
             /* !!!need to update REMOVESTAGE_FILE*/
             Utils.writeObject(REMOVESTAGE_FILE, removeStageBlodSHAMap);
             /* delete the file from the working directory*/
             File rmFile = Utils.join(CWD, rmFileName);
-            if (rmFile.exists()) {
-                rmFile.delete();
-            }
+            rmFile.delete();
         }
     }
 
     public static void gitletLog() {
+        if (!ifHasInitialized()) {
+            System.out.println("Not in an initialized Gitlet directory.");
+            return;
+        }
         /* get the parent commit SHA1-id*/
         Commit curCommit = getHeadCommit();
        while (true) {
@@ -380,6 +399,10 @@ public class Repository {
     }
 
     public static void gitletGlobalLog() {
+        if (!ifHasInitialized()) {
+            System.out.println("Not in an initialized Gitlet directory.");
+            return;
+        }
         List<String> commitList = Utils.plainFilenamesIn(COMMIT_FOLDER);
         for (String commitSHA1Name : commitList) {
             Commit curCommit = Utils.readObject(Utils.join(COMMIT_FOLDER, commitSHA1Name), Commit.class);
@@ -396,6 +419,10 @@ public class Repository {
     }
 
     public static void gitletFind(String message) {
+        if (!ifHasInitialized()) {
+            System.out.println("Not in an initialized Gitlet directory.");
+            return;
+        }
         List<String> commitList = Utils.plainFilenamesIn(COMMIT_FOLDER);
         boolean hasThisMessage = false;
         for (String commitSHA1Name : commitList) {
@@ -411,11 +438,14 @@ public class Repository {
     }
 
     public static void gitletStatus() {
+        if (!ifHasInitialized()) {
+            System.out.println("Not in an initialized Gitlet directory.");
+            return;
+        }
         List<String> branchList = Utils.plainFilenamesIn(HEADS_FOLDER);
         /* print "Branches"*/
         System.out.println("=== Branches ===");
         for (String branchName : branchList) {
-
             /* find if equal HEAD commit*/
             if (branchName.equals(Utils.readContentsAsString(HEAD_FILE).split("/")[2])) {
                 System.out.print("*");
@@ -458,7 +488,7 @@ public class Repository {
         Commit headCommit = getHeadCommit();
         headCommit.blobSHA1IdMap.forEach((key, value) -> {
             if ((!workDirectoryFileList.contains(key) && !Utils.readObject(REMOVESTAGE_FILE, TreeMap.class).containsKey(key))
-                    || (workDirectoryFileList.contains(key) && !value.equals(Utils.sha1(key, Utils.readContentsAsString(Utils.join(CWD, key)))))) {
+                    || (workDirectoryFileList.contains(key) && !value.equals(Utils.sha1(key, Utils.readContentsAsString(Utils.join(CWD, key)))) && !Utils.readObject(ADDSTAGE_FILE, TreeMap.class).containsKey(key))) {
                 System.out.print(key);
                 if (!workDirectoryFileList.contains(key) && !Utils.readObject(REMOVESTAGE_FILE, TreeMap.class).containsKey(key)) {
                     System.out.println(" (deleted)");
@@ -479,6 +509,10 @@ public class Repository {
     }
 
     public static void gitletCheckout(String[] args) {
+        if (!ifHasInitialized()) {
+            System.out.println("Not in an initialized Gitlet directory.");
+            return;
+        }
         /* java gitlet.Main checkout -- [file name].
          * "--" is only one argument
          */
@@ -553,6 +587,10 @@ public class Repository {
     }
 
     public static void gitletBranch(String branchName) {
+        if (!ifHasInitialized()) {
+            System.out.println("Not in an initialized Gitlet directory.");
+            return;
+        }
         if (Utils.join(HEADS_FOLDER, branchName).exists()) {
             System.out.println("A branch with that name already exists.");
             return;
@@ -568,6 +606,10 @@ public class Repository {
     }
 
     public static void gitletRmbranch(String rmbranchName) {
+        if (!ifHasInitialized()) {
+            System.out.println("Not in an initialized Gitlet directory.");
+            return;
+        }
         if (!Utils.join(HEADS_FOLDER, rmbranchName).exists()) {
             System.out.println("A branch with that name does not exist.");
             return;
@@ -582,6 +624,10 @@ public class Repository {
     }
 
     public static void gitletReset(String commitId) {
+        if (!ifHasInitialized()) {
+            System.out.println("Not in an initialized Gitlet directory.");
+            return;
+        }
         /* Failure cases*/
         if (!Utils.join(COMMIT_FOLDER, commitId).exists()) {
             System.out.println("No commit with that id exists.");
@@ -600,6 +646,10 @@ public class Repository {
     }
 
     public static void gitletMerge(String givenBranchName) {
+        if (!ifHasInitialized()) {
+            System.out.println("Not in an initialized Gitlet directory.");
+            return;
+        }
         /* failure cases*/
         if (!Utils.readObject(ADDSTAGE_FILE, TreeMap.class).isEmpty() || !Utils.readObject(REMOVESTAGE_FILE, TreeMap.class).isEmpty()) {
             System.out.println("You have uncommitted changes.");
