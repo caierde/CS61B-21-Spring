@@ -210,6 +210,8 @@ public class Repository {
         conflictFileContentString += ">>>>>>>";
         Utils.writeContents(currentBranchFile, conflictFileContentString);
         gitletAdd(currentBranchFile.getName());
+        System.out.println("Encountered a merge conflict.");
+        System.out.println("Merge conflict file: " + currentBranchFile.getName());
     }
 
     /* init the .git*/
@@ -278,17 +280,19 @@ public class Repository {
         TreeMap<String, String> headCommitBlobSHA1IdMap = headCommit.blobSHA1IdMap;
         /* each add need to compare addFile content to HeadCommitBlobSHA1IdMap content*/
         String blobSHAId = Utils.sha1(addFileName, Utils.readContents(addFile));
-        /* if equal the current branch commit blob. then rm the addstage relevant blob*/
+        /* if equal the current branch commit blob. then rm the addstage and removestage relevant blob*/
+        TreeMap<String, String> removeStageBlodSHAMap = Utils.readObject(REMOVESTAGE_FILE, TreeMap.class);
         if (blobSHAId.equals(headCommitBlobSHA1IdMap.get(addFileName))) {
             TreeMap<String, String> addStageBlodSHAMap = Utils.readObject(ADDSTAGE_FILE, TreeMap.class);
-            if (addStageBlodSHAMap.containsKey(addFileName)) {
+            if (addStageBlodSHAMap.containsKey(addFileName) || removeStageBlodSHAMap.containsKey(addFileName)) {
                 addStageBlodSHAMap.remove(addFileName);
+                removeStageBlodSHAMap.remove(addFileName);
             }
             Utils.writeObject(ADDSTAGE_FILE, addStageBlodSHAMap);
+            Utils.writeObject(REMOVESTAGE_FILE, removeStageBlodSHAMap);
             return;
         }
         /* if the file has been in remove stage, then we delete it in remove stage */
-        TreeMap<String, String> removeStageBlodSHAMap = Utils.readObject(REMOVESTAGE_FILE, TreeMap.class);
         if (removeStageBlodSHAMap.containsKey(addFileName)) {
             removeStageBlodSHAMap.remove(addFileName);
             Utils.writeObject(REMOVESTAGE_FILE, removeStageBlodSHAMap);
@@ -662,6 +666,7 @@ public class Repository {
         }
         if (Utils.readContentsAsString(HEAD_FILE).split("/")[2].equals(givenBranchName)) {
             System.out.println("Cannot merge a branch with itself.");
+            return;
         }
         /* how to get the split point is an algorithm task
          * =>Tree how to find the common ancestor of two nodes?
@@ -688,7 +693,8 @@ public class Repository {
          * only when the working directory need to be changed. Here will come up with this error
          * here has two situations when the working directory need to be changed
          */
-        curCommit.blobSHA1IdMap.forEach((key, value) -> {
+        for (String key : curCommit.blobSHA1IdMap.keySet()) {
+            String value = curCommit.blobSHA1IdMap.get(key);
             /* current branch file = splitCommit file != given branch file*/
             if (splitPointCommit.blobSHA1IdMap.containsKey(key) && splitPointCommit.blobSHA1IdMap.get(key).equals(value)) {
                 if (getUntrackedFileList().contains(key) &&
@@ -706,7 +712,7 @@ public class Repository {
                     }
                 }
             }
-        });
+        }
 
 
         /* common cases*/
@@ -722,29 +728,32 @@ public class Repository {
                 if (!givenBranchCommit.blobSHA1IdMap.containsKey(key)) {
                     gitletRm(key);
                 /* if only changed in the given branch*/
-                } else if(!givenBranchCommit.blobSHA1IdMap.get(key).equals(value)) {
+                } else if (!givenBranchCommit.blobSHA1IdMap.get(key).equals(value)) {
+                    try {
+                        Utils.join(CWD, key).createNewFile();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
                     Utils.writeContents(Utils.join(CWD, key), Utils.readContentsAsString(Utils.join(BLOB_FOLDER, givenBranchCommit.blobSHA1IdMap.get(key))));
                     gitletAdd(key);
                 }
             /* merge conflict*/
             } else if (splitPointCommit.blobSHA1IdMap.containsKey(key) && !splitPointCommit.blobSHA1IdMap.get(key).equals(value)) {
                 if (!givenBranchCommit.blobSHA1IdMap.containsKey(key)
-                        || (givenBranchCommit.blobSHA1IdMap.containsKey(key) && !givenBranchCommit.blobSHA1IdMap.get(key).equals(splitPointCommit.blobSHA1IdMap.get(key)) && !value.equals(givenBranchCommit.blobSHA1IdMap.get(key)))) {
+                        || (!givenBranchCommit.blobSHA1IdMap.get(key).equals(splitPointCommit.blobSHA1IdMap.get(key)) && !value.equals(givenBranchCommit.blobSHA1IdMap.get(key)))) {
                     mergeConflictChangeFileContent(Utils.join(CWD, key), Utils.join(BLOB_FOLDER, givenBranchCommit.blobSHA1IdMap.get(key)));
-                    System.out.println("Encountered a merge conflict.");
                     whetherHasMergeConflict = true;
                 }
-            }
-            else if (!splitPointCommit.blobSHA1IdMap.containsKey(key) && givenBranchCommit.blobSHA1IdMap.containsKey(key)
+            /* merge conflict*/
+            } else if (!splitPointCommit.blobSHA1IdMap.containsKey(key) && givenBranchCommit.blobSHA1IdMap.containsKey(key)
                     && !value.equals(givenBranchCommit.blobSHA1IdMap.get(key))) {
                 mergeConflictChangeFileContent(Utils.join(CWD, key), Utils.join(BLOB_FOLDER, givenBranchCommit.blobSHA1IdMap.get(key)));
-                System.out.println("Encountered a merge conflict.");
                 whetherHasMergeConflict = true;
             }
         }
         /* Any files that were not present at the split point and are present only in the given branch should be checked out and staged.*/
-        for (String key : curCommit.blobSHA1IdMap.keySet()) {
-            String value = curCommit.blobSHA1IdMap.get(key);
+        for (String key : givenBranchCommit.blobSHA1IdMap.keySet()) {
+            String value = givenBranchCommit.blobSHA1IdMap.get(key);
             if (!splitPointCommit.blobSHA1IdMap.containsKey(key) && !curCommit.blobSHA1IdMap.containsKey(key)) {
                 File tempFile = Utils.join(CWD, key);
                 try {
@@ -758,7 +767,6 @@ public class Repository {
             if (splitPointCommit.blobSHA1IdMap.containsKey(key) && !value.equals(splitPointCommit.blobSHA1IdMap.get(key))
                     && !curCommit.blobSHA1IdMap.containsKey(key)) {
                 mergeConflictChangeFileContent(Utils.join(CWD, key), Utils.join(BLOB_FOLDER, givenBranchCommit.blobSHA1IdMap.get(key)));
-                System.out.println("Encountered a merge conflict.");
                 whetherHasMergeConflict = true;
             }
         }
