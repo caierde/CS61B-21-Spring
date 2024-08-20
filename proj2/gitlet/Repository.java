@@ -154,7 +154,7 @@ public class Repository {
                 currentBranchFlowMap.put(cur.toSHA1(), cur.toSHA1());
                 que.poll();
                 for (int j = 0; j < cur.parentsList.size(); j++) {
-                    que.add(Utils.readObject(Utils.join(COMMIT_FOLDER, cur.parentsList.get(i)), Commit.class));
+                    que.add(Utils.readObject(Utils.join(COMMIT_FOLDER, cur.parentsList.get(j)), Commit.class));
                 }
             }
         }
@@ -202,13 +202,19 @@ public class Repository {
         }
         String conflictFileContentString = "<<<<<<< HEAD\n";
         conflictFileContentString += Utils.readContentsAsString(currentBranchFile);
-        conflictFileContentString += "\n=======\n";
-        if (givenBranchFile.exists()) {
-            conflictFileContentString += Utils.readContentsAsString(givenBranchFile);
+        if (!Utils.readContentsAsString(currentBranchFile).isEmpty()) {
             conflictFileContentString += "\n";
+        }
+        conflictFileContentString += "=======\n";
+        if (givenBranchFile != null && givenBranchFile.exists()) {
+            conflictFileContentString += Utils.readContentsAsString(givenBranchFile);
+            if (!Utils.readContentsAsString(givenBranchFile).isEmpty()) {
+                conflictFileContentString += "\n";
+            }
         }
         conflictFileContentString += ">>>>>>>";
         Utils.writeContents(currentBranchFile, conflictFileContentString);
+        /* stage the result*/
         gitletAdd(currentBranchFile.getName());
         System.out.println("Encountered a merge conflict.");
 //        System.out.println("Merge conflict file: " + currentBranchFile.getName());
@@ -739,11 +745,12 @@ public class Repository {
                 }
             /* merge conflict*/
             } else if (splitPointCommit.blobSHA1IdMap.containsKey(key) && !splitPointCommit.blobSHA1IdMap.get(key).equals(value)) {
-                if (!givenBranchCommit.blobSHA1IdMap.containsKey(key)
-                        || (!givenBranchCommit.blobSHA1IdMap.get(key).equals(splitPointCommit.blobSHA1IdMap.get(key)) && !value.equals(givenBranchCommit.blobSHA1IdMap.get(key)))) {
+                if (!givenBranchCommit.blobSHA1IdMap.containsKey(key)) {
+                    mergeConflictChangeFileContent(Utils.join(CWD, key), null);
+                } else if (!givenBranchCommit.blobSHA1IdMap.get(key).equals(splitPointCommit.blobSHA1IdMap.get(key)) && !value.equals(givenBranchCommit.blobSHA1IdMap.get(key))) {
                     mergeConflictChangeFileContent(Utils.join(CWD, key), Utils.join(BLOB_FOLDER, givenBranchCommit.blobSHA1IdMap.get(key)));
-                    whetherHasMergeConflict = true;
                 }
+                whetherHasMergeConflict = true;
             /* merge conflict*/
             } else if (!splitPointCommit.blobSHA1IdMap.containsKey(key) && givenBranchCommit.blobSHA1IdMap.containsKey(key)
                     && !value.equals(givenBranchCommit.blobSHA1IdMap.get(key))) {
