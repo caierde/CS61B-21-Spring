@@ -106,7 +106,7 @@ public class Repository {
     /**
      * helper method: checkout the givenCommit file to the working directory
      */
-    public static void checkoutFile(Commit givenCommit) {
+    public static boolean checkoutFile(Commit givenCommit) {
         Commit headCommit = getHeadCommit();
         List<String> workDirectoryFileList = Utils.plainFilenamesIn(CWD);
         List<String> untrackedFileList = getUntrackedFileList();
@@ -116,7 +116,7 @@ public class Repository {
             if (!givenCommit.blobSHA1IdMap.containsKey(untrackedFileName)
                     || !givenCommit.blobSHA1IdMap.get(untrackedFileName).equals(Utils.sha1(untrackedFileName, Utils.readContentsAsString(Utils.join(CWD, untrackedFileName))))){
                 System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
-                return;
+                return false;
             }
         }
         /* delete all the files and copy all files in that branch*/
@@ -134,6 +134,7 @@ public class Repository {
             }
             Utils.writeContents(checkoutFile, Utils.readContentsAsString(Utils.join(BLOB_FOLDER, value)));
         });
+        return true;
     }
 
     /**
@@ -202,21 +203,15 @@ public class Repository {
         }
         String conflictFileContentString = "<<<<<<< HEAD\n";
         conflictFileContentString += Utils.readContentsAsString(currentBranchFile);
-        if (!Utils.readContentsAsString(currentBranchFile).isEmpty()) {
-            conflictFileContentString += "\n";
-        }
         conflictFileContentString += "=======\n";
         if (givenBranchFile != null && givenBranchFile.exists()) {
             conflictFileContentString += Utils.readContentsAsString(givenBranchFile);
-            if (!Utils.readContentsAsString(givenBranchFile).isEmpty()) {
-                conflictFileContentString += "\n";
-            }
         }
         conflictFileContentString += ">>>>>>>";
         Utils.writeContents(currentBranchFile, conflictFileContentString);
         /* stage the result*/
         gitletAdd(currentBranchFile.getName());
-        System.out.println("Encountered a merge conflict.");
+        System.out.println("Encountered a merge conflict."
 //        System.out.println("Merge conflict file: " + currentBranchFile.getName());
     }
 
@@ -587,7 +582,9 @@ public class Repository {
                 return;
             }
             Commit branchCommit = Utils.readObject(Utils.join(COMMIT_FOLDER, Utils.readContentsAsString(Utils.join(HEADS_FOLDER, branchName))), Commit.class);
-            checkoutFile(branchCommit);
+            if (!checkoutFile(branchCommit)) {
+                return;
+            }
             /* clear the staging area and update the current branch*/
             Utils.writeContents(HEAD_FILE, "refs/heads/" + branchName);
             Utils.writeObject(ADDSTAGE_FILE, new TreeMap<>());
