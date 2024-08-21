@@ -211,7 +211,7 @@ public class Repository {
         Utils.writeContents(currentBranchFile, conflictFileContentString);
         /* stage the result*/
         gitletAdd(currentBranchFile.getName());
-        System.out.println("Encountered a merge conflict."
+        System.out.println("Encountered a merge conflict.");
 //        System.out.println("Merge conflict file: " + currentBranchFile.getName());
     }
 
