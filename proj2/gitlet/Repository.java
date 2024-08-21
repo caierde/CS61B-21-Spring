@@ -719,7 +719,6 @@ public class Repository {
 
 
         /* common cases*/
-        boolean whetherHasMergeConflict = false;
         /* Any files that have been modified in the given branch since the split point, but not modified in the current branch
          * should be changed to their versions in the given branch
          * These files should then all be automatically staged
@@ -747,12 +746,10 @@ public class Repository {
                 } else if (!givenBranchCommit.blobSHA1IdMap.get(key).equals(splitPointCommit.blobSHA1IdMap.get(key)) && !value.equals(givenBranchCommit.blobSHA1IdMap.get(key))) {
                     mergeConflictChangeFileContent(Utils.join(CWD, key), Utils.join(BLOB_FOLDER, givenBranchCommit.blobSHA1IdMap.get(key)));
                 }
-                whetherHasMergeConflict = true;
             /* merge conflict*/
             } else if (!splitPointCommit.blobSHA1IdMap.containsKey(key) && givenBranchCommit.blobSHA1IdMap.containsKey(key)
                     && !value.equals(givenBranchCommit.blobSHA1IdMap.get(key))) {
                 mergeConflictChangeFileContent(Utils.join(CWD, key), Utils.join(BLOB_FOLDER, givenBranchCommit.blobSHA1IdMap.get(key)));
-                whetherHasMergeConflict = true;
             }
         }
         /* Any files that were not present at the split point and are present only in the given branch should be checked out and staged.*/
@@ -771,35 +768,32 @@ public class Repository {
             if (splitPointCommit.blobSHA1IdMap.containsKey(key) && !value.equals(splitPointCommit.blobSHA1IdMap.get(key))
                     && !curCommit.blobSHA1IdMap.containsKey(key)) {
                 mergeConflictChangeFileContent(Utils.join(CWD, key), Utils.join(BLOB_FOLDER, givenBranchCommit.blobSHA1IdMap.get(key)));
-                whetherHasMergeConflict = true;
             }
         }
-        /* if not have conflict. commit directly*/
-        if (!whetherHasMergeConflict) {
-            /*  use addstage map to update parent Commit blobSHA1IdMap */
-            Commit newCommit = new Commit("Merged " + givenBranchName +" into " + getHeadBranchFile().getName() +".");
-            Commit headCommit = getHeadCommit();
-            newCommit.blobSHA1IdMap.putAll(headCommit.blobSHA1IdMap);
-            newCommit.blobSHA1IdMap.putAll(Utils.readObject(ADDSTAGE_FILE, TreeMap.class));
-            /* use removestage map to update parent Commit blobSHA1IdMap*/
-            Utils.readObject(REMOVESTAGE_FILE, TreeMap.class).keySet().forEach(newCommit.blobSHA1IdMap::remove);
-            /* update the parentsList*/
-            newCommit.parentsList.add(headCommit.toSHA1());
-            newCommit.parentsList.add(givenBranchCommit.toSHA1());
-            /* create relevant commit*/
-            File addCommitFile = Utils.join(COMMIT_FOLDER, newCommit.toSHA1());
-            try {
-                addCommitFile.createNewFile();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            Utils.writeObject(addCommitFile, newCommit);
-            /* update the current branch*/
-            Utils.writeContents(Utils.join(GITLET_DIR, Utils.readContentsAsString(HEAD_FILE).split("/")), newCommit.toSHA1());
-            /* the staging area is cleared after a commit*/
-            Utils.writeObject(ADDSTAGE_FILE, new TreeMap<>());
-            Utils.writeObject(REMOVESTAGE_FILE, new TreeMap<>());
+        /*  use addstage map to update parent Commit blobSHA1IdMap */
+        Commit newCommit = new Commit("Merged " + givenBranchName +" into " + getHeadBranchFile().getName() +".");
+        Commit headCommit = getHeadCommit();
+        newCommit.blobSHA1IdMap.putAll(headCommit.blobSHA1IdMap);
+        newCommit.blobSHA1IdMap.putAll(Utils.readObject(ADDSTAGE_FILE, TreeMap.class));
+        /* use removestage map to update parent Commit blobSHA1IdMap*/
+        Utils.readObject(REMOVESTAGE_FILE, TreeMap.class).keySet().forEach(newCommit.blobSHA1IdMap::remove);
+        /* update the parentsList*/
+        newCommit.parentsList.add(headCommit.toSHA1());
+        newCommit.parentsList.add(givenBranchCommit.toSHA1());
+        /* create relevant commit*/
+        File addCommitFile = Utils.join(COMMIT_FOLDER, newCommit.toSHA1());
+        try {
+            addCommitFile.createNewFile();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
+        Utils.writeObject(addCommitFile, newCommit);
+        /* update the current branch*/
+        Utils.writeContents(Utils.join(GITLET_DIR, Utils.readContentsAsString(HEAD_FILE).split("/")), newCommit.toSHA1());
+        /* the staging area is cleared after a commit*/
+        Utils.writeObject(ADDSTAGE_FILE, new TreeMap<>());
+        Utils.writeObject(REMOVESTAGE_FILE, new TreeMap<>());
+
     }
 
     public static void gitletHelp() {
