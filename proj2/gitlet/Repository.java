@@ -696,6 +696,7 @@ public class Repository {
          * only when the working directory need to be changed. Here will come up with this error
          * here has two situations when the working directory need to be changed
          */
+
         for (String key : curCommit.blobSHA1IdMap.keySet()) {
             String value = curCommit.blobSHA1IdMap.get(key);
             /* current branch file = splitCommit file != given branch file*/
@@ -716,7 +717,13 @@ public class Repository {
                 }
             }
         }
-
+        for (String key : givenBranchCommit.blobSHA1IdMap.keySet()) {
+            String value = givenBranchCommit.blobSHA1IdMap.get(key);
+            if (!curCommit.blobSHA1IdMap.containsKey(key) && getUntrackedFileList().contains(key) && !value.equals(Utils.sha1(key, Utils.readContentsAsString(Utils.join(CWD, key))))) {
+                System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
+                return;
+            }
+        }
 
         /* common cases*/
         /* Any files that have been modified in the given branch since the split point, but not modified in the current branch
