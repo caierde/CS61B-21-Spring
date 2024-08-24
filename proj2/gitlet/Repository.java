@@ -207,7 +207,7 @@ public class Repository {
         if (givenBranchFile != null && givenBranchFile.exists()) {
             conflictFileContentString += Utils.readContentsAsString(givenBranchFile);
         }
-        conflictFileContentString += ">>>>>>>";
+        conflictFileContentString += ">>>>>>>\r\n";
         Utils.writeContents(currentBranchFile, conflictFileContentString);
         /* stage the result*/
         gitletAdd(currentBranchFile.getName());
