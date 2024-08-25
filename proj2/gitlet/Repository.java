@@ -207,7 +207,11 @@ public class Repository {
         if (givenBranchFile != null && givenBranchFile.exists()) {
             conflictFileContentString += Utils.readContentsAsString(givenBranchFile);
         }
-        conflictFileContentString += ">>>>>>>\r\n";
+        /**
+         * !!!pay attention to this \n, this is the line terminator in Unix.
+         * l had spent over ten days in this bug and well angry bug is only this???
+         */
+        conflictFileContentString += ">>>>>>>\n";
         Utils.writeContents(currentBranchFile, conflictFileContentString);
         /* stage the result*/
         gitletAdd(currentBranchFile.getName());
