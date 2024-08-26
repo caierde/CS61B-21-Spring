@@ -90,6 +90,7 @@ public class Repository {
      */
     public static Commit getHeadCommit() {
         String[] temp = Utils.readContentsAsString(HEAD_FILE).split("/");
+        /* delete the end string line terminator to avoid some small bug*/
         temp[temp.length - 1] = deleteEndLineTerminator(temp[temp.length - 1]);
         return Utils.readObject(Utils.join(COMMIT_FOLDER, deleteEndLineTerminator(Utils.readContentsAsString(Utils.join(GITLET_DIR, temp)))), Commit.class);
     }
