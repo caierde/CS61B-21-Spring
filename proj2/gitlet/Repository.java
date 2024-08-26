@@ -76,12 +76,22 @@ public class Repository {
     }
 
     /**
+     * helper  method: delete the end string line terminator to avoid some small bug
+     * @param str has end line terminator
+     * @return String has no end line terminator
+     */
+    public static String deleteEndLineTerminator(String str) {
+        return str.replace("\r\n", "").replace("\n", "").replace("\r", "");
+    }
+
+    /**
      * helper method: get the head commit
      * @return HEAD commit
      */
     public static Commit getHeadCommit() {
         String[] temp = Utils.readContentsAsString(HEAD_FILE).split("/");
-        return Utils.readObject(Utils.join(COMMIT_FOLDER, readContentsAsString(Utils.join(GITLET_DIR, temp))), Commit.class);
+        temp[temp.length - 1] = deleteEndLineTerminator(temp[temp.length - 1]);
+        return Utils.readObject(Utils.join(COMMIT_FOLDER, deleteEndLineTerminator(Utils.readContentsAsString(Utils.join(GITLET_DIR, temp)))), Commit.class);
     }
 
     /**
