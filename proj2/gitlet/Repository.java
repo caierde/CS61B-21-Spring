@@ -80,9 +80,9 @@ public class Repository {
      * @param str has end line terminator
      * @return String has no end line terminator
      */
-    public static String deleteEndLineTerminator(String str) {
-        return str.replace("\r\n", "").replace("\n", "").replace("\r", "");
-    }
+//    public static String deleteEndLineTerminator(String str) {
+//        return str.replace("\r\n", "").replace("\n", "").replace("\r", "");
+//    }
 
     /**
      * helper method: get the head commit
@@ -90,9 +90,7 @@ public class Repository {
      */
     public static Commit getHeadCommit() {
         String[] temp = Utils.readContentsAsString(HEAD_FILE).split("/");
-        /* delete the end string line terminator to avoid some small bug*/
-        temp[temp.length - 1] = deleteEndLineTerminator(temp[temp.length - 1]);
-        return Utils.readObject(Utils.join(COMMIT_FOLDER, deleteEndLineTerminator(Utils.readContentsAsString(Utils.join(GITLET_DIR, temp)))), Commit.class);
+        return Utils.readObject(Utils.join(COMMIT_FOLDER, readContentsAsString(Utils.join(GITLET_DIR, temp))), Commit.class);
     }
 
     /**
@@ -219,10 +217,10 @@ public class Repository {
             conflictFileContentString += Utils.readContentsAsString(givenBranchFile);
         }
         /**
-         * !!!pay attention to this \n, this is the line terminator in Unix.
+         * !!!pay attention to this \n, this is the line terminator(LF) in Unix.
          * l had spent over ten days in this bug and well angry bug is only this???
          */
-        conflictFileContentString += ">>>>>>>\n";
+        conflictFileContentString += ">>>>>>>";
         Utils.writeContents(currentBranchFile, conflictFileContentString);
         /* stage the result*/
         gitletAdd(currentBranchFile.getName());
